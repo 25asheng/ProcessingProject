@@ -1,17 +1,31 @@
 import processing.core.PApplet;
+import java.util.ArrayList;
+import java.lang.Math;
+import processing.core.PImage;
 
 public class Main extends PApplet {
-    public static void main(String[] args) {
-        System.out.println("Hello world!");
-    }
-
     final int NUM_PANELS_HORIZONTAL = 4; // the horizontal quantity of panels
     final int NUM_PANELS_VERTICAL = 4; // the vertical quantity of panels
-    Panel[] panels;
+    private ArrayList<Panel> panels;
+    public static PApplet app;
+
+    public Main(){
+        super();
+        app = this;
+    }
+
+    public static void main(String[] args){
+        PApplet.main("Main");
+    }
+
+    public void settings(){
+        size(600,600);
+    }
 
     public void setup(){
         size(600, 600);
-        panels = new Panel[NUM_PANELS_HORIZONTAL * NUM_PANELS_VERTICAL];
+        panels = new ArrayList<Panel>();
+        //NUM_PANELS_HORIZONTAL * NUM_PANELS_VERTICAL
 
         int index = 0;
         for (int i = 0; i < NUM_PANELS_VERTICAL; i++){
@@ -31,7 +45,7 @@ public class Main extends PApplet {
                     s = new RotatingPanel( x, y, w, h);
                 }
                 s.setupImage("bunny.png");
-                panels[index] = s;
+                panels.add(s);
                 index++;
             }
         }
@@ -40,19 +54,47 @@ public class Main extends PApplet {
     public void draw(){
         fancyBackground();
 
-        for (int i = 0; i < panels.length; i++){
-            Panel s = panels[i];
+        for (int i = 0; i < panels.size(); i++){
+            Panel s = panels.get(i);
             s.display();
         }
     }
 
     public void mouseClicked(){
-        for (int i = 0; i < panels.length; i++){
-            Panel s = panels[i];
-            s.handleMouseClicked(mouseX, mouseY);
+        for(Panel p : panels){
+            p.handleMouseClicked(mouseX, mouseY);
         }
     }
 
+    public void keyPressed(){
+        if(key =='s'){
+            Panel firstPanel = panels.get(0);
+            int oldFirstPanelX = firstPanel.getX();
+            int oldFirstPanelY = firstPanel.getY();
+            Panel lastPanel = panels.get(panels.size() - 1);
+
+            firstPanel.setX(lastPanel.getX());
+            firstPanel.setY(lastPanel.getY());
+            lastPanel.setX(oldFirstPanelX);
+            lastPanel.setY(oldFirstPanelY);
+
+        } else if (key=='r') {
+            int rand = (int)random(0,panels.size() - 1);
+            Panel original = panels.get(rand);
+            Panel replace = null;
+            if(original instanceof ContrastedPanel){
+                replace = new RotatingPanel(original.getX(), original.getY(), original.getWidth(), original.getHeight());
+            } else if(original instanceof RotatingPanel){
+                replace = new TintedPanel(original.getX(), original.getY(), original.getWidth(), original.getHeight());
+            } else if(original instanceof TintedPanel){
+                replace = new Panel(original.getX(), original.getY(), original.getWidth(), original.getHeight());
+            } else if(original instanceof Panel){
+                replace = new ContrastedPanel(original.getX(), original.getY(), original.getWidth(), original.getHeight());
+            }
+            replace.setupImage("bunny.png");
+            panels.set(rand,replace);
+        }
+    }
     private void fancyBackground(){
         loadPixels();
 
@@ -61,10 +103,10 @@ public class Main extends PApplet {
 
                 int loc = x + y * width;
 
-                if (x % 2 == 0) {
-                    pixels[loc] = color(255);
+                if (x % 30 == 0 || x % 30 == 1 || x % 30 == 2 || x % 30 == 3 || x % 30 == 4 || x % 30 == 5) {
+                    pixels[loc] = color(160,219,190);
                 } else {
-                    pixels[loc] = color(0);
+                    pixels[loc] = color(211,240,231);
                 }
             }
         }
